@@ -30,6 +30,10 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 # Keep the model typed as nn.Module so static analyzers know it has .generate(...)
 model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
 
+KERAS_MODEL_PATH = "converted_keras/keras_model.h5"
+LABELS_PATH = "converted_keras/labels.txt"
+
+print("Loading Keras classification model...")
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -202,7 +206,16 @@ async def klasifikasi(ctx):
             file_name = attachment.filename
             #file_url = attachment.url IF URL
             await attachment.save(f"./CV/{file_name}")
-            await ctx.send(get_class(model_path="keras_model.h5", labels_path="labels.txt", image_path=f"./CV/{file_name}"))
+            label, confidence = get_class(
+                model_path="converted_keras/keras_model.h5",
+                labels_path="converted_keras/labels.txt",
+                image_path=f"./CV/{file_name}"
+            )
+
+            label = label.strip()  # hapus \n
+
+            await ctx.send(f"Ini adalah **{label}**!")
+
     else:
         await ctx.send("Anda lupa mengunggah gambar :(")
         
@@ -313,4 +326,3 @@ async def simpan(ctx):
             await ctx.send(f"Menyimpan {file_name}")
     else:
         await ctx.send("Anda lupa mengunggah :(")
-
